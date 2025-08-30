@@ -6,7 +6,6 @@ import java.util.Set;
 
 public class HolidayCalendar
 {
-
     private Set<Calendar> holidays;
 
     public HolidayCalendar() 
@@ -27,8 +26,6 @@ public class HolidayCalendar
         Calendar d = date;
         removeTimeFromDate(d);
         holidays.add(d);
-
-        System.out.println("Added holiday: " + d.getTime());
     }
 
     public void setRecurringHoliday(final Calendar date)
@@ -37,8 +34,6 @@ public class HolidayCalendar
         removeTimeFromDate(d);
         d.set(Calendar.YEAR, 0);
         holidays.add(d);
-
-        //System.out.println("Added holiday: " + d.getTime());
     }
 
     public boolean isHoliday(final Calendar date)
@@ -59,7 +54,6 @@ public class HolidayCalendar
         // recurring holidays have their year value set to 0
         d.set(Calendar.YEAR, 0);
         isHoliday = holidays.contains(d);
-        //System.err.println("Checking recurring: " + d.getTime());
         return isHoliday;
     }
 }

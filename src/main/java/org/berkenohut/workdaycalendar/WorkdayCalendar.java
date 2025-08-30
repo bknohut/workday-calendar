@@ -14,72 +14,50 @@ public class WorkdayCalendar {
 
     private class WorkingHours
     {
-        private final int startHour;
-        private final int startMinute;
-
-        private final int stopHour;
-        private final int stopMinute;
+        private final int startTime;
+        private final int stopTime;
  
-        private final int totalHours;
-        private final int totalMinutes;
+        private final int totalWorkingTime;
 
-        public WorkingHours(int startHour, int startMinute, int stopHour, int stopMinute)
+        public WorkingHours(Calendar start, Calendar stop)
         {
-            this.startHour = startHour;
-            this.startMinute = startMinute;
+            int startHour = start.get(Calendar.HOUR_OF_DAY);
+            int startMinute = start.get(Calendar.MINUTE);
+            startTime = startHour * 60 + startMinute;
 
-            this.stopHour = stopHour;
-            this.stopMinute = stopMinute;
+            int stopHour = stop.get(Calendar.HOUR_OF_DAY);
+            int stopMinute = stop.get(Calendar.MINUTE);
+            stopTime = stopHour * 60 + stopMinute;
 
-            int minuteDifference = stopMinute - startMinute;
-
-            if( minuteDifference < 0)
-            {
-                this.totalHours = stopHour - startHour - 1;
-                this.totalMinutes = minuteDifference + 60;
-            }
-            else
-            {
-                this.totalHours = stopHour - startHour;
-                this.totalMinutes = minuteDifference;
-            }
-
-            /*
-            System.out.println("Received working hours: Start: " + startHour + ":" + startMinute + " and Stop: " + stopHour + ":" + stopMinute + " with a time difference of: "
-            + totalHours + ":" + totalMinutes);
-            */
+            totalWorkingTime = stopTime - startTime;
         }
 
-        public int getStartHour() 
+        public int getStartTime() 
         {
-            return startHour;
+            return startTime;
         }
 
-        public int getStartMinute()
+        public int getStopTime() 
         {
-            return startMinute;
+            return stopTime;
         }
 
-        public int getStopHour() 
+        public int getWorkingDayTotal()
         {
-            return stopHour;
-        }
-
-        public int getStopMinute()
-        {
-            return stopMinute;
-        }
-
-        public int getWorkingDayTotalHours()
-        {
-            return totalHours;
-        }
-
-        public int getWorkingDayTotalMinutes()
-        {
-            return totalMinutes;
+            return totalWorkingTime;
         }
         
+        public int getHoursFromWorkingTime(int time)
+        {
+            int hours = (int)time / 60;
+            return hours;
+        }
+
+        public int getMinutesFromWorkingTime(int time)
+        {
+            int minutes = time % 60;
+            return minutes;
+        }
     }
 
     private WorkingHours workingHours;
@@ -102,37 +80,60 @@ public class WorkdayCalendar {
 
     public void setWorkdayStartAndStop(Calendar start, Calendar stop)
     {
-        int startHour = start.get(Calendar.HOUR_OF_DAY);
-        int startMinute = start.get(Calendar.MINUTE);
-
-        int endHour = stop.get(Calendar.HOUR_OF_DAY);
-        int endMinute = stop.get(Calendar.MINUTE);
-
-        if(workingHours == null)
-            workingHours = new WorkingHours(startHour, startMinute, endHour, endMinute);
+        workingHours = new WorkingHours(start, stop);
     }
 
     public Date getWorkdayIncrement(Date startDate, float incrementInWorkdays)
     {
         float incrementHours = incrementInWorkdays % 1;
         int incrementDays = (int) (incrementInWorkdays - incrementHours);
-
-        incrementHours = incrementHours * workingHours.getWorkingDayTotalHours(); // working hours in float
-
-        int totalHours = (int) incrementHours; // just the hours
-        float remainder = incrementHours - totalHours;
-        int totalMinutes = (int) (remainder * 60); // just the minutes
-
-        int i = 0;
         int increment = incrementDays > 0 ? 1 : -1;
 
-        incrementDays = Math.abs(incrementDays);
+        int scaledIncrementTime = (int)(incrementHours * workingHours.getWorkingDayTotal()); // scaled working hours
+        // TODO: increment Hours needs to be int maybe take the nearest int instead of casting
 
+        int workingHoursStartTime = workingHours.getStartTime();
+        int workingHoursStopTime = workingHours.getStopTime();
+
+        // set start date 
         Calendar currentDate = Calendar.getInstance();
-
         currentDate.setTime(startDate);
-        System.out.println("StartingDate: " + currentDate.getTime());
+        //System.out.println("StartingDate: " + currentDate.getTime());
 
+        int startTime = currentDate.get(Calendar.HOUR_OF_DAY) * 60 + currentDate.get(Calendar.MINUTE);
+
+        if( increment == 1 ) // moving fw
+        {
+            if( startTime < workingHoursStartTime)
+                startTime = workingHoursStartTime;
+
+            int timeInNextDay = startTime + scaledIncrementTime;
+            if( startTime + scaledIncrementTime > workingHoursStopTime) // move to next day's beginning - this can be an else totalIncrementTime <= workingDay
+            {
+                timeInNextDay = workingHoursStartTime + scaledIncrementTime;
+                currentDate.add(Calendar.DAY_OF_YEAR, 1);
+            }
+            currentDate.set(Calendar.HOUR_OF_DAY, workingHours.getHoursFromWorkingTime(timeInNextDay));
+            currentDate.set(Calendar.MINUTE, workingHours.getMinutesFromWorkingTime(timeInNextDay));
+
+        }
+        else // moving bw
+        {
+            if( startTime > workingHoursStopTime) // move to the day's end.
+                startTime = workingHoursStopTime;
+
+            int timeInNextDay = startTime + scaledIncrementTime;
+            if( timeInNextDay < workingHoursStartTime) // total increment is negative here
+            {
+                timeInNextDay = workingHoursStopTime - scaledIncrementTime;
+                currentDate.add(Calendar.DAY_OF_YEAR, -1);
+            }
+            currentDate.set(Calendar.HOUR_OF_DAY, workingHours.getHoursFromWorkingTime(timeInNextDay));
+            currentDate.set(Calendar.MINUTE, workingHours.getMinutesFromWorkingTime(timeInNextDay));
+        }
+
+        int i = 0;
+        incrementDays = Math.abs(incrementDays);
         while(i < incrementDays)
         {   
             currentDate.add(Calendar.DAY_OF_YEAR, increment);
@@ -142,11 +143,6 @@ public class WorkdayCalendar {
                 continue;
             i++;
         }
-
-        int hourOfTheDay = currentDate.get(Calendar.HOUR_OF_DAY);
-        int minuteOfTheHour = currentDate.get(Calendar.MINUTE);
-
-        
 
         return currentDate.getTime();
     }
@@ -162,7 +158,14 @@ public class WorkdayCalendar {
         workdayCalendar.setHoliday(new GregorianCalendar(2004, Calendar.MAY, 27, 0 ,0));
 
         SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-        Date start = new GregorianCalendar(2004, Calendar.MAY, 24, 18, 5).getTime();
+        //Date start = new GregorianCalendar(2004, Calendar.MAY, 24, 18, 5).getTime();
+
+        ArrayList starts = new ArrayList<Date>();
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 18, 5).getTime());
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 19, 3).getTime());
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 18, 3).getTime());
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 8, 3).getTime());
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 7, 3).getTime());
 
         ArrayList increments = new ArrayList<>();
 
@@ -174,13 +177,10 @@ public class WorkdayCalendar {
 
         for(int i = 0; i < increments.size(); ++i)
         {
-            System.out.println(f.format(start) + " with the addition of " +
+            Date s = (Date)starts.get(i);
+            System.out.println(f.format(starts.get(i)) + " with the addition of " +
             increments.get(i) + " working days is " +
-            f.format(workdayCalendar.getWorkdayIncrement(start, (float)increments.get(i) )));
-
-            System.err.println("");
+            f.format(workdayCalendar.getWorkdayIncrement(s, (float)increments.get(i) )));
         }
-
-        
     }
 }
