@@ -90,7 +90,6 @@ public class WorkdayCalendar {
         int increment = incrementDays > 0 ? 1 : -1;
 
         int scaledIncrementTime = (int)(incrementHours * workingHours.getWorkingDayTotal()); // scaled working hours
-        // TODO: increment Hours needs to be int maybe take the nearest int instead of casting
 
         int workingHoursStartTime = workingHours.getStartTime();
         int workingHoursStopTime = workingHours.getStopTime();
@@ -98,8 +97,6 @@ public class WorkdayCalendar {
         // set start date 
         Calendar currentDate = Calendar.getInstance();
         currentDate.setTime(startDate);
-        //System.out.println("StartingDate: " + currentDate.getTime());
-
         int startTime = currentDate.get(Calendar.HOUR_OF_DAY) * 60 + currentDate.get(Calendar.MINUTE);
 
         if( increment == 1 ) // moving fw
@@ -108,9 +105,14 @@ public class WorkdayCalendar {
                 startTime = workingHoursStartTime;
 
             int timeInNextDay = startTime + scaledIncrementTime;
-            if( startTime + scaledIncrementTime > workingHoursStopTime) // move to next day's beginning - this can be an else totalIncrementTime <= workingDay
+            if( startTime + scaledIncrementTime > workingHoursStopTime)
             {
-                timeInNextDay = workingHoursStartTime + scaledIncrementTime;
+                if(startTime > workingHoursStopTime) // startTime is already ahead, move time to next day's beginning
+                    timeInNextDay = workingHoursStartTime + scaledIncrementTime;
+
+                else // subtract hours in the current day
+                    timeInNextDay = workingHoursStartTime + scaledIncrementTime - (workingHoursStopTime - startTime);
+                
                 currentDate.add(Calendar.DAY_OF_YEAR, 1);
             }
             currentDate.set(Calendar.HOUR_OF_DAY, workingHours.getHoursFromWorkingTime(timeInNextDay));
@@ -123,9 +125,13 @@ public class WorkdayCalendar {
                 startTime = workingHoursStopTime;
 
             int timeInNextDay = startTime + scaledIncrementTime;
-            if( timeInNextDay < workingHoursStartTime) // total increment is negative here
+            if( timeInNextDay < workingHoursStartTime) // scaledIncrementTime is negative
             {
-                timeInNextDay = workingHoursStopTime - scaledIncrementTime;
+                if(startTime < workingHoursStartTime) // startTime is already behind, move time to previous day's end
+                    timeInNextDay = workingHoursStopTime + scaledIncrementTime;
+                else // subtract hours in the current day 
+                    timeInNextDay = (startTime - workingHoursStartTime) + workingHoursStopTime + scaledIncrementTime;
+
                 currentDate.add(Calendar.DAY_OF_YEAR, -1);
             }
             currentDate.set(Calendar.HOUR_OF_DAY, workingHours.getHoursFromWorkingTime(timeInNextDay));
@@ -161,11 +167,45 @@ public class WorkdayCalendar {
         //Date start = new GregorianCalendar(2004, Calendar.MAY, 24, 18, 5).getTime();
 
         ArrayList starts = new ArrayList<Date>();
-        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 18, 5).getTime());
-        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 19, 3).getTime());
-        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 18, 3).getTime());
-        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 8, 3).getTime());
-        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 7, 3).getTime());
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 18, 5).getTime()); // start after wd <-
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 19, 3).getTime()); // start after wd ->
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 18, 3).getTime()); // start after wd <-
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 8, 3).getTime());  // start on wd ->
+        starts.add(new GregorianCalendar(2004, Calendar.MAY, 24, 7, 3).getTime());  // start before wd ->
+
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 5, 31).getTime()); // start before wd ->
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 24, 5, 31).getTime()); // start on sunday before wd ->
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 19, 21).getTime()); // start on sunday after wd ->
+
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 5, 31).getTime()); // start before wd <-
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 24, 5, 31).getTime()); // start on sunday before wd <-
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 19, 21).getTime()); // start on sunday after wd <-
+
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 14, 41).getTime()); // start on wd <-
+
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 11, 34).getTime()); // start on wd <- pass start
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 13, 27).getTime()); // start on wd -> pass stop
+
+        workdayCalendar.setRecurringHoliday(new GregorianCalendar(2025, Calendar.AUGUST, 17, 0, 0)); // add more holidays
+        workdayCalendar.setHoliday(new GregorianCalendar(2025, Calendar.AUGUST, 27, 0 ,0));
+        workdayCalendar.setRecurringHoliday(new GregorianCalendar(2025, Calendar.AUGUST, 17, 0, 0)); // duplicates should not matter
+        workdayCalendar.setHoliday(new GregorianCalendar(2025, Calendar.AUGUST, 27, 0 ,0));
+
+        workdayCalendar.setRecurringHoliday(new GregorianCalendar(2025, Calendar.AUGUST, 20, 0, 0)); // add more
+        workdayCalendar.setHoliday(new GregorianCalendar(2025, Calendar.AUGUST, 21, 0 ,0));
+
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 5, 31).getTime()); // start before wd ->
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 24, 5, 31).getTime()); // start on sunday before wd ->
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 19, 21).getTime()); // start on sunday after wd ->
+
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 5, 31).getTime()); // start before wd <-
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 24, 5, 31).getTime()); // start on sunday before wd <-
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 19, 21).getTime()); // start on sunday after wd <-
+
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 14, 41).getTime()); // start on wd <-
+
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 11, 34).getTime()); // start on wd <- pass start
+        starts.add(new GregorianCalendar(2025, Calendar.AUGUST, 18, 13, 27).getTime()); // start on wd -> pass stop
 
         ArrayList increments = new ArrayList<>();
 
@@ -174,6 +214,29 @@ public class WorkdayCalendar {
         increments.add(-6.7470217f);
         increments.add(12.782709f);
         increments.add(8.276628f);
+        increments.add(5.5f);
+        increments.add(5.5f);
+        increments.add(5.5f);
+
+        increments.add(-5.5f);
+        increments.add(-5.5f);
+        increments.add(-5.5f);
+
+        increments.add(-5.5f);
+        increments.add(-5.5f);
+        increments.add(5.5f);
+
+        increments.add(5.5f);
+        increments.add(5.5f);
+        increments.add(5.5f);
+
+        increments.add(-5.5f);
+        increments.add(-5.5f);
+        increments.add(-5.5f);
+
+        increments.add(-5.5f);
+        increments.add(-5.5f);
+        increments.add(5.5f);
 
         for(int i = 0; i < increments.size(); ++i)
         {
