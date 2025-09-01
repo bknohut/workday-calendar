@@ -1,43 +1,37 @@
-package org.berkenohut.workdaycalendar;
+package org.berkenohut.holidaycalendar;
 
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
-public class HolidayCalendar
-{
+public class HolidayCalendar {
     private Set<Calendar> holidays;
 
-    public HolidayCalendar() 
-    {
+    public HolidayCalendar() {
         holidays = new HashSet<>();
     }
 
-    private void removeTimeFromDate(Calendar date)
-    {
+    private void removeTimeFromDate(Calendar date) {
         date.set(Calendar.HOUR_OF_DAY, 0);
         date.set(Calendar.MINUTE, 0);
         date.set(Calendar.SECOND, 0);
         date.set(Calendar.MILLISECOND, 0);
     }
 
-    public void setHoliday(final Calendar date)
-    {
+    public void setHoliday(final Calendar date) {
         Calendar d = date;
         removeTimeFromDate(d);
         holidays.add(d);
     }
 
-    public void setRecurringHoliday(final Calendar date)
-    {
+    public void setRecurringHoliday(final Calendar date) {
         Calendar d = date;
         removeTimeFromDate(d);
         d.set(Calendar.YEAR, 0);
         holidays.add(d);
     }
 
-    public boolean isHoliday(final Calendar date)
-    {
+    public boolean isHoliday(final Calendar date) {
         // check if it is weekend
         int day = date.get(Calendar.DAY_OF_WEEK);
         if(day == Calendar.SUNDAY || day == Calendar.SATURDAY)

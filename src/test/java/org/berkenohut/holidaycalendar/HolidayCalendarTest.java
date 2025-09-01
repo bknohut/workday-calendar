@@ -1,4 +1,4 @@
-package org.berkenohut.workdaycalendar;
+package org.berkenohut.holidaycalendar;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -6,11 +6,9 @@ import java.util.GregorianCalendar;
 
 import org.junit.jupiter.api.Test;
 
-public class HolidayCalendarTest 
-{
+public class HolidayCalendarTest {
     @Test
-    public void setHolidayTest()
-    {
+    public void setHolidayTest() {
         HolidayCalendar holidayCalendar = new HolidayCalendar();
 
         ArrayList<GregorianCalendar> holidays = new ArrayList<>();
@@ -20,20 +18,17 @@ public class HolidayCalendarTest
         holidays.add(new GregorianCalendar(2137, Calendar.APRIL, 12, 0 ,0));
         holidays.add(new GregorianCalendar(1995, Calendar.JULY, 30, 0 ,0));
 
-        for (Object date : holidays)
-        {
+        for (Object date : holidays) {
             holidayCalendar.setHoliday((GregorianCalendar)date);
         }
 
-        for (Object date : holidays) 
-        {
+        for (Object date : holidays) {
             assert holidayCalendar.isHoliday((GregorianCalendar)date) == true;
         }
     }
 
     @Test
-    public void setRecurringHoliday()
-    {
+    public void setRecurringHoliday() {
         HolidayCalendar holidayCalendar = new HolidayCalendar();
 
         ArrayList<GregorianCalendar> holidays = new ArrayList<>();
@@ -43,8 +38,7 @@ public class HolidayCalendarTest
         holidays.add(new GregorianCalendar(2137, Calendar.APRIL, 12, 0 ,0));
         holidays.add(new GregorianCalendar(1995, Calendar.JULY, 30, 0 ,0));
 
-        for (Object date : holidays)
-        {
+        for (Object date : holidays) {
             holidayCalendar.setRecurringHoliday((GregorianCalendar)date);
         }
 
@@ -65,8 +59,7 @@ public class HolidayCalendarTest
         holidays.add(new GregorianCalendar(2028, Calendar.NOVEMBER, 17, 0 ,0));
         holidays.add(new GregorianCalendar(2140, Calendar.APRIL, 12, 0 ,0));
         holidays.add(new GregorianCalendar(1998, Calendar.JULY, 30, 0 ,0));
-        for (Object date : holidays) 
-        {
+        for (Object date : holidays) {
             assert holidayCalendar.isHoliday((GregorianCalendar)date) == true;
         }
     }

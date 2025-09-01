@@ -10,15 +10,17 @@ import org.junit.jupiter.api.Test;
 
 public class WorkdayCalendarTest
 {
-    private class DateIncrementResultTriplet
+    private class DateIncrementResultQuadruple
     {
-        DateIncrementResultTriplet(Date date, float increment, Date result)
+        DateIncrementResultQuadruple(int idx, Date date, float increment, Date result)
         {
+            this.idx = idx;
             this.date = date;
             this.increment = increment;
             this.result = result;
         }
 
+        public int idx;
         public Date date;
         public float increment;
         public Date result;
@@ -58,18 +60,20 @@ public class WorkdayCalendarTest
     @Test
     public void testGetWorkdayIncrement()
     {
-        ArrayList<DateIncrementResultTriplet> testData = new ArrayList<>();
+        ArrayList<DateIncrementResultQuadruple> testData = new ArrayList<>();
 
         // negative increment
         // start time after workday 
         {
-            testData.add( new DateIncrementResultTriplet(
+            testData.add( new DateIncrementResultQuadruple(
+                0,
                 new GregorianCalendar(2004, Calendar.MAY, 24, 18, 5).getTime(), 
                 -5.5f,
                 new GregorianCalendar(2004, Calendar.MAY, 14, 12, 0).getTime())
             );
 
-            testData.add(new DateIncrementResultTriplet(
+            testData.add(new DateIncrementResultQuadruple(
+                1,
                 new GregorianCalendar(2004, Calendar.MAY, 24, 18, 3).getTime(), 
                 -6.7470217f,
                 new GregorianCalendar(2004, Calendar.MAY, 13, 10, 2).getTime())
@@ -78,7 +82,8 @@ public class WorkdayCalendarTest
         
         // start time before workday
         {
-            testData.add(new DateIncrementResultTriplet(
+            testData.add(new DateIncrementResultQuadruple(
+                2,
                 new GregorianCalendar(2025, Calendar.AUGUST, 22, 3, 33).getTime(), 
                 -8.312f,
                 new GregorianCalendar(2025, Calendar.AUGUST, 8, 13, 31).getTime())
@@ -88,7 +93,8 @@ public class WorkdayCalendarTest
         // start time in workday
         // increment does not move time out of workday
         {
-            testData.add(new DateIncrementResultTriplet(
+            testData.add(new DateIncrementResultQuadruple(
+                3,
                 new GregorianCalendar(2025, Calendar.AUGUST, 22, 15, 21).getTime(), 
                 -0.25f,
                 new GregorianCalendar(2025, Calendar.AUGUST, 22, 13, 21).getTime())
@@ -97,7 +103,8 @@ public class WorkdayCalendarTest
         
         // increment moves time before workday
         {
-            testData.add(new DateIncrementResultTriplet(
+            testData.add(new DateIncrementResultQuadruple(
+                4,
                 new GregorianCalendar(2025, Calendar.AUGUST, 22, 13, 0).getTime(), 
                 -0.75f,
                 new GregorianCalendar(2025, Calendar.AUGUST, 21, 15, 0).getTime())
@@ -106,7 +113,8 @@ public class WorkdayCalendarTest
         
         // no day increment, time changes the day to a holiday
         {
-            testData.add(new DateIncrementResultTriplet(
+            testData.add(new DateIncrementResultQuadruple(
+                5,
                 new GregorianCalendar(2025, Calendar.AUGUST, 15, 13, 0).getTime(), 
                 -0.75f,
                 new GregorianCalendar(2025, Calendar.AUGUST, 13, 15, 0).getTime())
@@ -115,17 +123,19 @@ public class WorkdayCalendarTest
         
         // holiday start increment hits holiday
         {
-            testData.add(new DateIncrementResultTriplet(
-                new GregorianCalendar(2025, Calendar.AUGUST, 31, 16, 0).getTime(), 
+            testData.add(new DateIncrementResultQuadruple(
+                6,
+                new GregorianCalendar(2025, Calendar.AUGUST, 31, 15, 0).getTime(), 
                 -2.0f,
-                new GregorianCalendar(2025, Calendar.AUGUST, 27, 16, 0).getTime())
+                new GregorianCalendar(2025, Calendar.AUGUST, 26, 16, 0).getTime())
             );
         }
 
         // positive increment
         // start time after workday
         {
-            testData.add(new DateIncrementResultTriplet(
+            testData.add(new DateIncrementResultQuadruple(
+                7,
                 new GregorianCalendar(2004, Calendar.MAY, 24, 19, 3).getTime(), 
                 44.723656f,
                 new GregorianCalendar(2004, Calendar.JULY, 27, 13, 47).getTime())
@@ -134,7 +144,8 @@ public class WorkdayCalendarTest
 
         // start time before workday
         {
-            testData.add(new DateIncrementResultTriplet(
+            testData.add(new DateIncrementResultQuadruple(
+                8,
                 new GregorianCalendar(2004, Calendar.MAY, 24, 7, 3).getTime(), 
                 8.276628f,
                 new GregorianCalendar(2004, Calendar.JUNE, 4, 10, 12).getTime())
@@ -144,7 +155,8 @@ public class WorkdayCalendarTest
         // start time in workday
         // increment does not move time out of workday
         {
-            testData.add(new DateIncrementResultTriplet(
+            testData.add(new DateIncrementResultQuadruple(
+                9,
                 new GregorianCalendar(2004, Calendar.MAY, 24, 8, 3).getTime(), 
                 12.782709f,
                 new GregorianCalendar(2004, Calendar.JUNE, 10, 14, 18).getTime())
@@ -153,7 +165,8 @@ public class WorkdayCalendarTest
 
         // increment moves time after workday
         {
-            testData.add(new DateIncrementResultTriplet(
+            testData.add(new DateIncrementResultQuadruple(
+                10,
                 new GregorianCalendar(2025, Calendar.AUGUST, 22, 14, 42).getTime(), 
                 5.625f,
                 new GregorianCalendar(2025, Calendar.SEPTEMBER, 2, 11, 42).getTime())
@@ -162,10 +175,41 @@ public class WorkdayCalendarTest
 
         // holiday start increment hits holiday
         {
-            testData.add(new DateIncrementResultTriplet(
-                new GregorianCalendar(2025, Calendar.AUGUST, 23, 8, 0).getTime(), 
+            testData.add(new DateIncrementResultQuadruple(
+                11,
+                new GregorianCalendar(2025, Calendar.AUGUST, 23, 9, 0).getTime(), 
                 4.0f,
-                new GregorianCalendar(2025, Calendar.AUGUST, 29, 8, 0).getTime())
+                new GregorianCalendar(2025, Calendar.SEPTEMBER, 1, 8, 0).getTime())
+            );
+        }
+
+        // no increment with correct start date
+        {
+            testData.add(new DateIncrementResultQuadruple(
+                12,
+                new GregorianCalendar(2025, Calendar.AUGUST, 22, 10, 0).getTime(), 
+                0.0f,
+                new GregorianCalendar(2025, Calendar.AUGUST, 22, 10, 0).getTime())
+            );
+        }
+
+        // no increment with wrong start date
+        {
+            testData.add(new DateIncrementResultQuadruple(
+                13,
+                new GregorianCalendar(2025, Calendar.AUGUST, 23, 18, 0).getTime(), 
+                0.0f,
+                new GregorianCalendar(2025, Calendar.AUGUST, 22, 16, 0).getTime())
+            );
+        }
+
+        // large increment 
+        {
+            testData.add(new DateIncrementResultQuadruple(
+                14,
+                new GregorianCalendar(2025, Calendar.SEPTEMBER, 1, 8, 0).getTime(), 
+                100000.0f,
+                new GregorianCalendar(2411, Calendar.JANUARY, 28, 8, 0).getTime())
             );
         }
 
@@ -183,8 +227,9 @@ public class WorkdayCalendarTest
 
         for (int i = 0; i < testData.size(); ++i) 
         {
-            DateIncrementResultTriplet testDataItem = testData.get(i);
+            DateIncrementResultQuadruple testDataItem = testData.get(i);
 
+            int idx = testDataItem.idx;
             Date date = testDataItem.date;
             float increment = testDataItem.increment;
             Date expectedResult = testDataItem.result;
@@ -193,8 +238,8 @@ public class WorkdayCalendarTest
 
             boolean isCorrect = receivedResult.equals(expectedResult);
 
-            System.out.println("isCorrect: " + isCorrect + " index: " + i);
-            System.out.println("receivedResult: " + receivedResult + " expectedResult: " + expectedResult);
+            System.out.println("isCorrect: " + isCorrect + " index: " + idx);
+            System.out.println("receivedResult: " + receivedResult + " expectedResult: " + expectedResult + " and increment is: " + increment);
 
             assert isCorrect;
         }
