@@ -34,7 +34,7 @@ public class WorkdayCalendar {
             totalWorkingTime = stopTime - startTime;
         }
 
-        public int getTimeFromDate(Calendar date) {
+        public static int getTimeFromDate(Calendar date) {
             int hours = date.get(Calendar.HOUR_OF_DAY);
             int minutes = date.get(Calendar.MINUTE);
 
